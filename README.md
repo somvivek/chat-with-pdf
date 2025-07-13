@@ -2,6 +2,9 @@
 
 A simple RAG (Retrieval-Augmented Generation) app that lets you upload a PDF and chat with it using OpenAI and LangChain. One at a time.
 
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://chat-with-pdf-w8hbtk8j2hfxquclrta7wr.streamlit.app)
+
+
 ## 🚀 Features
 
 - Upload any PDF file
