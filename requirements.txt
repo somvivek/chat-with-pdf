@@ -8,4 +8,5 @@ openai
 tiktoken
 langchain-openai
 streamlit
-FAISS
+faiss-cpu
+
