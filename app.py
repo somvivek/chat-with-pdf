@@ -24,6 +24,7 @@ def create_vectorstore(chunks, openai_api_key):
 
 def create_conversational_chain(vectorstore, openai_api_key):
     llm = ChatOpenAI(openai_api_key=openai_api_key, temperature=0)
+    
     prompt = ChatPromptTemplate.from_template(
         "You are a helpful assistant. Use the context below to answer the question.\n\n"
         "Don't make up answers, only use the provided context.\n\n"
@@ -38,7 +39,12 @@ def create_conversational_chain(vectorstore, openai_api_key):
         llm=llm,
         retriever=retriever,
         memory=memory,
-        combine_docs_chain_kwargs={"prompt": prompt}
+        combine_docs_chain_type="stuff",
+        combine_docs_chain_kwargs={
+            "prompt": prompt,
+            "document_variable_name": "context"
+        },
+        return_source_documents=True  # ✅ important to ensure "source_documents" is returned
     )
     return chain
 
@@ -77,12 +83,14 @@ if st.session_state.chain:
         with st.spinner("Thinking..."):
             try:
                 result = st.session_state.chain.invoke({"question": user_input})
-                answer = result["answer"]
-                sources = result["source_documents"]
+                answer = result.get("answer", "No answer returned.")
+                sources = result.get("source_documents", [])
+
                 st.session_state.chat_history.append(("user", user_input))
                 st.session_state.chat_history.append(("ai", answer))
+                if sources:
+                    st.session_state.chat_history.append(("meta", sources))
 
-                st.session_state.chat_history.append(("meta", sources))
             except Exception as e:
                 st.error(f"Error generating answer: {e}")
 
@@ -99,4 +107,3 @@ for role, message in st.session_state.chat_history:
 # Show initial instruction
 if not openai_api_key or not uploaded_pdf:
     st.info("Please enter your API key and upload a PDF to begin chatting.")
-
