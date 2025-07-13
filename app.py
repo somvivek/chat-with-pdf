@@ -78,16 +78,23 @@ if st.session_state.chain:
             try:
                 result = st.session_state.chain.invoke({"question": user_input})
                 answer = result["answer"]
-
+                sources = result["source_documents"]
                 st.session_state.chat_history.append(("user", user_input))
                 st.session_state.chat_history.append(("ai", answer))
+
+                st.session_state.chat_history.append(("meta", sources))
             except Exception as e:
                 st.error(f"Error generating answer: {e}")
 
 # Step 3: Render Chat History
 for role, message in st.session_state.chat_history:
-    with st.chat_message(role):
-        st.markdown(message)
+    with st.chat_message(role if role != "meta" else "ai"):
+        if role == "meta":
+            with st.expander("📄 Sources"):
+                for i, doc in enumerate(message, 1):
+                    st.markdown(f"**Source {i}:** {doc.page_content[:300]}...")
+        else:
+            st.markdown(message)
 
 # Show initial instruction
 if not openai_api_key or not uploaded_pdf:
