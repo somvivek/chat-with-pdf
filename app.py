@@ -1,6 +1,6 @@
 import streamlit as st
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
@@ -19,7 +19,7 @@ def split_pdf_text(text):
 
 def create_vectorstore(chunks, openai_api_key):
     embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
-    vectorstore = Chroma.from_texts(chunks, embedding=embeddings)
+    vectorstore = FAISS.from_texts(chunks, embedding=embeddings)
     return vectorstore
 
 def create_conversational_chain(vectorstore, openai_api_key):
