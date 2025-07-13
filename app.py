@@ -36,7 +36,11 @@ def create_conversational_chain(vectorstore, openai_api_key):
         output_key="answer"  # ✅ Tells memory what to store
     )
 
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+    # Create compression retriever using LLMChainExtractor
+    compressor = LLMChainExtractor.from_llm(llm)
+    base_retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
+    retriever = ContextualCompressionRetriever(base_compressor=compressor, base_retriever=base_retriever)
+
 
     chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
