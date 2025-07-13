@@ -19,18 +19,22 @@ def split_pdf_text(text):
 
 def create_vectorstore(chunks, openai_api_key):
     embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
-    vectorstore = FAISS.from_texts(chunks, embedding=embeddings)
-    return vectorstore
+    return FAISS.from_texts(chunks, embedding=embeddings)
 
 def create_conversational_chain(vectorstore, openai_api_key):
     llm = ChatOpenAI(openai_api_key=openai_api_key, temperature=0)
+
     prompt = ChatPromptTemplate.from_template(
         "You are a helpful assistant. Use the context below to answer the question.\n\n"
         "Don't make up answers, only use the provided context.\n\n"
         "Context:\n{context}\n\nQuestion:\n{question}\n\nAnswer:"
     )
 
-    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    memory = ConversationBufferMemory(
+        memory_key="chat_history",
+        return_messages=True,
+        output_key="answer"  # ✅ Tells memory what to store
+    )
 
     retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 
@@ -39,8 +43,9 @@ def create_conversational_chain(vectorstore, openai_api_key):
         retriever=retriever,
         memory=memory,
         combine_docs_chain_kwargs={"prompt": prompt},
-        return_source_documents=True
+        return_source_documents=True  # ✅ Enable source document output
     )
+
     return chain
 
 # ---------------- Streamlit UI ----------------
@@ -79,18 +84,27 @@ if st.session_state.chain:
             try:
                 result = st.session_state.chain.invoke({"question": user_input})
                 answer = result["answer"]
+                sources = result.get("source_documents", [])
 
+                # Save to chat history
                 st.session_state.chat_history.append(("user", user_input))
                 st.session_state.chat_history.append(("ai", answer))
+                if sources:
+                    st.session_state.chat_history.append(("sources", sources))
             except Exception as e:
                 st.error(f"Error generating answer: {e}")
 
 # Step 3: Render Chat History
 for role, message in st.session_state.chat_history:
-    with st.chat_message(role):
-        st.markdown(message)
+    if role in ["user", "ai"]:
+        with st.chat_message(role):
+            st.markdown(message)
+    elif role == "sources":
+        with st.chat_message("ai"):
+            with st.expander("📄 Source Documents"):
+                for i, doc in enumerate(message, 1):
+                    st.markdown(f"**Source {i}:** {doc.page_content[:500]}...")
 
 # Show initial instruction
 if not openai_api_key or not uploaded_pdf:
     st.info("Please enter your API key and upload a PDF to begin chatting.")
-
