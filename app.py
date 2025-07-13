@@ -38,7 +38,8 @@ def create_conversational_chain(vectorstore, openai_api_key):
         llm=llm,
         retriever=retriever,
         memory=memory,
-        combine_docs_chain_kwargs={"prompt": prompt}
+        combine_docs_chain_kwargs={"prompt": prompt},
+        return_source_documents=True
     )
     return chain
 
