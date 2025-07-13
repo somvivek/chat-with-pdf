@@ -83,6 +83,7 @@ if st.session_state.chain:
         with st.spinner("Thinking..."):
             try:
                 result = st.session_state.chain.invoke({"question": user_input})
+                st.write("DEBUG result:", result)
                 answer = result.get("answer", "No answer returned.")
                 sources = result.get("source_documents", [])
 
