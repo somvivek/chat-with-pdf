@@ -33,7 +33,7 @@ def create_conversational_chain(vectorstore, openai_api_key):
     memory = ConversationBufferMemory(
         memory_key="chat_history",
         return_messages=True,
-        output_key="answer"  # ✅ Tells memory what to store
+        output_key="answer"  # Tells memory what to store
     )
 
     # Create compression retriever using LLMChainExtractor
@@ -47,7 +47,7 @@ def create_conversational_chain(vectorstore, openai_api_key):
         retriever=retriever,
         memory=memory,
         combine_docs_chain_kwargs={"prompt": prompt},
-        return_source_documents=True  # ✅ Enable source document output
+        return_source_documents=True  # Enable source document output
     )
 
     return chain
